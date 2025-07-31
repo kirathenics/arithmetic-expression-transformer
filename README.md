@@ -40,5 +40,5 @@ Where:
 ### Example
 
 ```bash
-java -jar expression-processor.jar input.txt output.txt manual
+java -jar arithmetic-expression-transformer.jar input.txt output.txt manual
 ```
