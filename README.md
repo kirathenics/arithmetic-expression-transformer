@@ -27,3 +27,18 @@ This is a Java application designed to read input files, process arithmetic expr
 ### Running the Application
 
 Use the command line to run the application with parameters:
+java -jar arithmetic-expression-transformer.jar <input-file-path> <output-file-path> <mode> 
+
+
+Where:
+
+- `<input-file-path>` — path to the input file
+- `<output-file-path>` — path to the output file
+- `<mode>` — processing mode: `manual` or `regex`
+
+
+### Example
+
+```bash
+java -jar expression-processor.jar input.txt output.txt manual
+```
