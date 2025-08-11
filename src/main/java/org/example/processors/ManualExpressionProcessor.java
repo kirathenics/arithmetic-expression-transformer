@@ -11,7 +11,6 @@ import java.util.List;
  * Provides error feedback on malformed expressions (unclosed brackets, unknown operators, division by zero).
  */
 public class ManualExpressionProcessor implements ExpressionProcessor {
-
     @Override
     public String process(String input) {
         StringBuilder sb = new StringBuilder(input);
@@ -25,7 +24,6 @@ public class ManualExpressionProcessor implements ExpressionProcessor {
                 i++;
             } else if (c == ')') {
                 if (openStack.isEmpty()) {
-                    // Unmatched closing parenthesis: include error at this position and skip
                     sb.insert(i, "[ERROR: Unmatched closing bracket at position " + i + "]");
                     i += ("[ERROR: Unmatched closing bracket at position " + i + "]").length() + 1;
                     continue;
@@ -33,34 +31,84 @@ public class ManualExpressionProcessor implements ExpressionProcessor {
                 int start = openStack.pop();
                 int end = i;
                 String inner = sb.substring(start + 1, end);
-                String replacement;
-                try {
-                    List<String> tokens = tokenize(inner);
-                    List<String> postfix = infixToPostfix(tokens);
-                    double value = evaluatePostfix(postfix);
-                    replacement = formatDouble(value);
-                } catch (IllegalArgumentException | ArithmeticException ex) {
-                    // Include the message so tests can detect "Unknown operator" etc.
-                    replacement = "[ERROR: " + ex.getMessage() + "]";
-                }
-
-                // Replace from start to end inclusive with replacement
+                String replacement = evalSafe(inner);
                 sb.replace(start, end + 1, replacement);
-                // Reset scanning index to start of replacement to handle newly introduced nested expressions if any
                 i = start + replacement.length();
             } else {
                 i++;
             }
         }
 
-        // If any unmatched opening parenthesis remains, report error(s)
         while (!openStack.isEmpty()) {
             int pos = openStack.pop();
             String err = "[ERROR: Unclosed bracket at position " + pos + "]";
             sb.insert(pos, err);
         }
 
+        // Check for expressions without brackets
+        sb = new StringBuilder(replacePlainExpressions(sb.toString()));
+
         return sb.toString();
+    }
+
+    private String replacePlainExpressions(String text) {
+        StringBuilder result = new StringBuilder();
+        int pos = 0;
+        while (pos < text.length()) {
+            if (isDigit(text.charAt(pos)) || text.charAt(pos) == '-' || text.charAt(pos) == '+') {
+                int endPos = pos;
+                boolean hasOperator = false;
+                while (endPos < text.length()) {
+                    char c = text.charAt(endPos);
+                    if (isDigit(c) || isOperator(c) || isWhitespace(c)
+                            || (c == '.' && isDecimalPoint(text, endPos))) {
+                        if (isOperator(c)) hasOperator = true;
+                        endPos++;
+                    } else {
+                        break;
+                    }
+                }
+
+                // Separate possible punctuation mark
+                int punctuationStart = endPos;
+                while (punctuationStart < text.length() && isPunctuation(text.charAt(punctuationStart))) {
+                    punctuationStart++;
+                }
+
+                String candidate = text.substring(pos, endPos).trim();
+                String punctuation = text.substring(endPos, punctuationStart);
+
+                if (hasOperator && isPotentialExpression(candidate)) {
+                    String replacement = evalSafe(candidate);
+                    result.append(replacement).append(punctuation);
+                    pos = punctuationStart;
+                    continue;
+                }
+            }
+            result.append(text.charAt(pos));
+            pos++;
+        }
+        return result.toString();
+    }
+
+    private boolean isPotentialExpression(String expr) {
+        try {
+            List<String> tokens = tokenize(expr);
+            return tokens.size() >= 3;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    private String evalSafe(String expr) {
+        try {
+            List<String> tokens = tokenize(expr);
+            List<String> postfix = infixToPostfix(tokens);
+            double value = evaluatePostfix(postfix);
+            return formatDouble(value);
+        } catch (IllegalArgumentException | ArithmeticException ex) {
+            return "[ERROR: " + ex.getMessage() + "]";
+        }
     }
 
     /**
@@ -127,8 +175,9 @@ public class ManualExpressionProcessor implements ExpressionProcessor {
             if (isNumber(token)) {
                 output.add(token);
             } else if (isOperator(token)) {
-                while (!ops.isEmpty() && isOperator(ops.peek()) &&
-                        precedence(ops.peek()) >= precedence(token)) {
+                while (!ops.isEmpty() && isOperator(ops.peek())) {
+                    assert ops.peek() != null;
+                    if (!(precedence(ops.peek()) >= precedence(token))) break;
                     output.add(ops.pop());
                 }
                 ops.push(token);
@@ -239,6 +288,20 @@ public class ManualExpressionProcessor implements ExpressionProcessor {
 
     private boolean isOperator(String s) {
         return "+".equals(s) || "-".equals(s) || "*".equals(s) || "/".equals(s);
+    }
+
+    private boolean isPunctuation(char c) {
+        return c == '.' || c == ',' || c == '!' || c == '?';
+    }
+
+    private boolean isWhitespace(char c) {
+        return c == ' ';
+    }
+
+    private boolean isDecimalPoint(String text, int index) {
+        return index > 0 && index < text.length() - 1
+                && Character.isDigit(text.charAt(index - 1))
+                && Character.isDigit(text.charAt(index + 1));
     }
 
     private int precedence(String op) {
