@@ -7,7 +7,7 @@ This is a Java application designed to read input files, process arithmetic expr
 - Processes arithmetic expressions with correct operator precedence and parentheses.
 - Multiple expression processing modes:
   - Manual parsing (without regular expressions).
-- Unit tested with JUnit 5.
+- Unit tested with JUnit 5 + Allure Framework for beautiful test reports.
 
 ## TODO Features
 
@@ -41,4 +41,22 @@ Where:
 
 ```bash
 java -jar arithmetic-expression-transformer.jar input.txt output.txt manual
+```
+
+### Running Tests with Allure Reports
+This project uses JUnit 5 and Allure Framework for test reporting.
+
+Run Tests
+```bash
+mvn clean test
+```
+
+Generate Allure Report
+```bash
+mvn allure:report
+```
+
+Open Allure Report in Browser
+```bash
+mvn allure:serve
 ```

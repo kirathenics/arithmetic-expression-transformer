@@ -1,11 +1,24 @@
 package org.example.processors;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import io.qameta.allure.*;
+import org.junit.jupiter.api.*;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Unit tests for ManualExpressionProcessor using JUnit 5 and Allure.
+ */
+@Epic("Expression Processing")
+@Feature("Manual Parsing")
+@Story("Evaluate math expressions manually")
+@Owner("Bondarenko Kirill")
+@Severity(SeverityLevel.CRITICAL)
+@TestMethodOrder(MethodOrderer.DisplayName.class)
+@Tag("manual")
+@DisplayName("ManualExpressionProcessor Tests")
 class ManualExpressionProcessorTest {
+
     private ManualExpressionProcessor processor;
 
     @BeforeEach
@@ -14,6 +27,9 @@ class ManualExpressionProcessorTest {
     }
 
     @Test
+    @DisplayName("Simple addition")
+    @Severity(SeverityLevel.NORMAL)
+    @Description("Checks if processor correctly sums two integers inside parentheses")
     void testSimpleAddition() {
         String input = "The result is (2 + 2).";
         String output = processor.process(input);
@@ -21,6 +37,9 @@ class ManualExpressionProcessorTest {
     }
 
     @Test
+    @DisplayName("Multiplication and parentheses")
+    @Severity(SeverityLevel.NORMAL)
+    @Description("Checks if processor correctly subtracts two integers inside parentheses")
     void testWithMultiplicationAndParentheses() {
         String input = "Expression: (2 + 3 * (4 - 1))";
         String output = processor.process(input);
@@ -28,6 +47,9 @@ class ManualExpressionProcessorTest {
     }
 
     @Test
+    @DisplayName("Nested parentheses")
+    @Severity(SeverityLevel.NORMAL)
+    @Description("Checks if processor correctly multiplies two numbers inside parentheses")
     void testNestedParentheses() {
         String input = "Nested: ((1 + 2) * (3 + 4))";
         String output = processor.process(input);
@@ -35,6 +57,9 @@ class ManualExpressionProcessorTest {
     }
 
     @Test
+    @DisplayName("Double numbers")
+    @Severity(SeverityLevel.NORMAL)
+    @Description("Checks if processor correctly multiplies two numbers inside parentheses")
     void testWithDoubleNumbers() {
         String input = "Price: (3.5 * 2)";
         String output = processor.process(input);
@@ -42,6 +67,9 @@ class ManualExpressionProcessorTest {
     }
 
     @Test
+    @DisplayName("Negative numbers")
+    @Severity(SeverityLevel.CRITICAL)
+    @Description("Checks if processor correctly process negative numbers")
     void testNegativeNumbers() {
         String input = "Balance: (-2 + -3)";
         String output = processor.process(input);
@@ -49,6 +77,9 @@ class ManualExpressionProcessorTest {
     }
 
     @Test
+    @DisplayName("Division")
+    @Severity(SeverityLevel.NORMAL)
+    @Description("Checks if processor correctly divides two numbers inside parentheses")
     void testDivision() {
         String input = "Quotient: (10 / 2)";
         String output = processor.process(input);
@@ -56,6 +87,9 @@ class ManualExpressionProcessorTest {
     }
 
     @Test
+    @DisplayName("Division by zero")
+    @Severity(SeverityLevel.BLOCKER)
+    @Description("Checks if processor correctly handles the division by 0 operation")
     void testDivisionByZero() {
         String input = "Failing: (5 / 0)";
         String output = processor.process(input);
@@ -64,6 +98,9 @@ class ManualExpressionProcessorTest {
     }
 
     @Test
+    @DisplayName("Unclosed parentheses")
+    @Severity(SeverityLevel.BLOCKER)
+    @Description("Checks if processor correctly handles unclosed parentheses")
     void testUnclosedParentheses() {
         String input = "Bad input: (3 + (4 - 2)";
         String output = processor.process(input);
@@ -72,6 +109,9 @@ class ManualExpressionProcessorTest {
     }
 
     @Test
+    @DisplayName("Unknown operator")
+    @Severity(SeverityLevel.BLOCKER)
+    @Description("Checks if processor correctly handles unknown operator")
     void testUnknownOperator() {
         String input = "Bad op: (2 $ 2)";
         String output = processor.process(input);
@@ -80,6 +120,9 @@ class ManualExpressionProcessorTest {
     }
 
     @Test
+    @DisplayName("Multiple expressions")
+    @Severity(SeverityLevel.NORMAL)
+    @Description("Checks if processor correctly handles multiple expressions in text")
     void testMultipleExpressionsInText() {
         String input = "First: (1 + 2), Second: (2 * 3)";
         String output = processor.process(input);
@@ -87,6 +130,9 @@ class ManualExpressionProcessorTest {
     }
 
     @Test
+    @DisplayName("No expressions")
+    @Severity(SeverityLevel.NORMAL)
+    @Description("Checks if processor correctly handles no expressions in text")
     void testNoExpressions() {
         String input = "There is nothing to compute.";
         String output = processor.process(input);
@@ -94,6 +140,9 @@ class ManualExpressionProcessorTest {
     }
 
     @Test
+    @DisplayName("Floating-point precision")
+    @Severity(SeverityLevel.NORMAL)
+    @Description("Checks if processor correctly computes floating-point precision operation")
     void testFloatingPointPrecision() {
         String input = "Total: (0.1 + 0.2)";
         String output = processor.process(input);
