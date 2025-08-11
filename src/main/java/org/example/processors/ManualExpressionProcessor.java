@@ -51,37 +51,64 @@ public class ManualExpressionProcessor implements ExpressionProcessor {
         return sb.toString();
     }
 
+    /**
+     * Replaces plain arithmetic expressions in the given text with their evaluated results.
+     * <p>
+     * The method scans through the text and detects sequences that look like arithmetic
+     * expressions (e.g., "2 + 2" or "7 - 3"). If an expression is found, it is evaluated
+     * and replaced with its computed value while preserving punctuation and spacing.
+     * </p>
+     *
+     * <p>
+     * Detection rules:
+     * <ul>
+     *   <li>Expressions can start with a digit, '+' or '-'.</li>
+     *   <li>Expressions can contain digits, operators (+, -, *, /), decimal points, and whitespace.</li>
+     *   <li>Valid decimal points are detected using {@code isDecimalPoint()}.</li>
+     *   <li>Punctuation after the expression is preserved.</li>
+     * </ul>
+     * </p>
+     *
+     * @param text The input string possibly containing arithmetic expressions.
+     * @return The processed string with evaluated expressions replaced by their results.
+     */
     private String replacePlainExpressions(String text) {
         StringBuilder result = new StringBuilder();
         int pos = 0;
+
         while (pos < text.length()) {
-            if (isDigit(text.charAt(pos)) || text.charAt(pos) == '-' || text.charAt(pos) == '+') {
+            char ch = text.charAt(pos);
+            if (isDigit(ch) || ch == '-' || ch == '+') {
                 int endPos = pos;
                 boolean hasOperator = false;
+                int lastMeaningfulIndex = -1;
+
                 while (endPos < text.length()) {
                     char c = text.charAt(endPos);
-                    if (isDigit(c) || isOperator(c) || isWhitespace(c)
-                            || (c == '.' && isDecimalPoint(text, endPos))) {
+                    if (isDigit(c) || isOperator(c) || (c == '.' && isDecimalPoint(text, endPos))) {
+                        lastMeaningfulIndex = endPos;
                         if (isOperator(c)) hasOperator = true;
+                        endPos++;
+                    } else if (isWhitespace(c)) {
                         endPos++;
                     } else {
                         break;
                     }
                 }
 
-                // Separate possible punctuation mark
-                int punctuationStart = endPos;
-                while (punctuationStart < text.length() && isPunctuation(text.charAt(punctuationStart))) {
-                    punctuationStart++;
+                if (lastMeaningfulIndex == -1) {
+                    result.append(text.charAt(pos));
+                    pos++;
+                    continue;
                 }
 
-                String candidate = text.substring(pos, endPos).trim();
-                String punctuation = text.substring(endPos, punctuationStart);
+                String candidate = text.substring(pos, lastMeaningfulIndex + 1);
+                String punctuation = text.substring(lastMeaningfulIndex + 1, endPos);
 
                 if (hasOperator && isPotentialExpression(candidate)) {
                     String replacement = evalSafe(candidate);
                     result.append(replacement).append(punctuation);
-                    pos = punctuationStart;
+                    pos = endPos;
                     continue;
                 }
             }
@@ -91,6 +118,18 @@ public class ManualExpressionProcessor implements ExpressionProcessor {
         return result.toString();
     }
 
+    /**
+     * Checks if the given string is a potential arithmetic expression.
+     * <p>
+     * The expression is considered "potential" if it can be tokenized
+     * into at least three parts (e.g., operand, operator, operand).
+     * This method does not fully validate the syntax but ensures that
+     * the structure resembles an arithmetic operation.
+     * </p>
+     *
+     * @param expr The expression string to check.
+     * @return {@code true} if the string looks like a valid arithmetic expression, {@code false} otherwise.
+     */
     private boolean isPotentialExpression(String expr) {
         try {
             List<String> tokens = tokenize(expr);
@@ -100,6 +139,18 @@ public class ManualExpressionProcessor implements ExpressionProcessor {
         }
     }
 
+    /**
+     * Safely evaluates an arithmetic expression and returns the formatted result.
+     * <p>
+     * This method first tokenizes the expression, converts it to postfix notation,
+     * and then evaluates the postfix expression. The result is formatted into a string.
+     * If an error occurs during tokenization, conversion, or evaluation
+     * (e.g., invalid syntax or division by zero), an error message is returned instead of throwing an exception.
+     * </p>
+     *
+     * @param expr The arithmetic expression to evaluate.
+     * @return The result of the evaluation as a string, or an error message if evaluation fails.
+     */
     private String evalSafe(String expr) {
         try {
             List<String> tokens = tokenize(expr);
@@ -288,10 +339,6 @@ public class ManualExpressionProcessor implements ExpressionProcessor {
 
     private boolean isOperator(String s) {
         return "+".equals(s) || "-".equals(s) || "*".equals(s) || "/".equals(s);
-    }
-
-    private boolean isPunctuation(char c) {
-        return c == '.' || c == ',' || c == '!' || c == '?';
     }
 
     private boolean isWhitespace(char c) {
