@@ -14,11 +14,19 @@ public class RegexExpressionProcessor implements ExpressionProcessor {
 
     private static final Pattern INNER_BRACKETS_PATTERN = Pattern.compile("\\(([^()]+)\\)");
     private static final Pattern SIMPLE_EXPR_PATTERN = Pattern.compile(
-            "-?\\d+(?:\\.\\d+)?(?:\\s*[-+*/]\\s*-?\\d+(?:\\.\\d+)?)+" // простое выражение без скобок
+            "-?\\d+(?:\\.\\d+)?(?:\\s*[-+*/]\\s*-?\\d+(?:\\.\\d+)?)+"
     );
     private static final Pattern VALID_MATH_EXPR = Pattern.compile("[0-9+\\-*/.\\s]+");
 
 
+    /**
+     * Processes the given input string, evaluating mathematical expressions
+     * inside parentheses and replacing them with their computed results.
+     * Also evaluates plain expressions outside parentheses.
+     *
+     * @param input the input text containing potential mathematical expressions
+     * @return the processed text with expressions replaced by results
+     */
     @Override
     public String process(String input) {
         if (input == null || input.isEmpty()) {
@@ -68,10 +76,13 @@ public class RegexExpressionProcessor implements ExpressionProcessor {
         return result;
     }
 
-    private boolean isValidMathExpression(String expr) {
-        return VALID_MATH_EXPR.matcher(expr).matches();
-    }
-
+    /**
+     * Finds and evaluates all simple mathematical expressions in the given text
+     * (expressions without parentheses) and replaces them with their results.
+     *
+     * @param input the text to search for simple expressions
+     * @return the text with evaluated expressions replaced by results
+     */
     private String replaceSimpleExpressions(String input) {
         Matcher matcher = SIMPLE_EXPR_PATTERN.matcher(input);
         StringBuilder sb = new StringBuilder();
@@ -94,12 +105,27 @@ public class RegexExpressionProcessor implements ExpressionProcessor {
         return sb.toString();
     }
 
+    /**
+     * Evaluates a mathematical expression string and returns its numerical value.
+     *
+     * @param expr the mathematical expression to evaluate
+     * @return the evaluated result as a double
+     * @throws EvaluationException if the expression is invalid or evaluation fails
+     */
     private double evalExpression(String expr) throws EvaluationException {
         List<String> tokens = tokenize(expr);
         List<String> rpn = toRPN(tokens);
         return evalRPN(rpn);
     }
 
+    /**
+     * Splits a mathematical expression into tokens (numbers and operators).
+     * Supports unary minus for negative numbers.
+     *
+     * @param expr the expression to tokenize
+     * @return a list of tokens
+     * @throws EvaluationException if an unknown symbol is encountered
+     */
     private List<String> tokenize(String expr) throws EvaluationException {
         List<String> tokens = new ArrayList<>();
         char[] chars = expr.toCharArray();
@@ -137,6 +163,14 @@ public class RegexExpressionProcessor implements ExpressionProcessor {
         return tokens;
     }
 
+    /**
+     * Converts an infix expression token list into Reverse Polish Notation (RPN)
+     * using the Shunting Yard algorithm.
+     *
+     * @param tokens the infix tokens
+     * @return the tokens in RPN order
+     * @throws EvaluationException if an unknown token is encountered
+     */
     private List<String> toRPN(List<String> tokens) throws EvaluationException {
         List<String> output = new ArrayList<>();
         Deque<String> stack = new ArrayDeque<>();
@@ -160,6 +194,17 @@ public class RegexExpressionProcessor implements ExpressionProcessor {
         return output;
     }
 
+    /**
+     * Checks if the provided expression string contains only valid
+     * mathematical characters (digits, operators, decimal points, and spaces).
+     *
+     * @param expr the expression to validate
+     * @return true if the expression is a valid math expression format, false otherwise
+     */
+    private boolean isValidMathExpression(String expr) {
+        return VALID_MATH_EXPR.matcher(expr).matches();
+    }
+
     private boolean isNumber(String token) {
         try {
             Double.parseDouble(token);
@@ -179,6 +224,13 @@ public class RegexExpressionProcessor implements ExpressionProcessor {
         return 0;
     }
 
+    /**
+     * Evaluates an expression in Reverse Polish Notation (RPN) form.
+     *
+     * @param tokens the RPN tokens
+     * @return the evaluated result as a double
+     * @throws EvaluationException if the expression is invalid or contains errors
+     */
     private double evalRPN(List<String> tokens) throws EvaluationException {
         Deque<Double> stack = new ArrayDeque<>();
         for (String token : tokens) {
