@@ -11,6 +11,24 @@ import java.util.List;
  * Provides error feedback on malformed expressions (unclosed brackets, unknown operators, division by zero).
  */
 public class ManualExpressionProcessor implements ExpressionProcessor {
+
+    /**
+     * Processes the given input string by evaluating arithmetic expressions.
+     * <p>
+     * The method performs the following steps:
+     * <ul>
+     *   <li>Scans the text for matching parentheses and evaluates mathematical expressions inside them.</li>
+     *   <li>Supports nested parentheses; evaluation starts from the innermost expressions.</li>
+     *   <li>If the content inside parentheses is not a valid mathematical expression, it is left unchanged.</li>
+     *   <li>After processing parentheses, evaluates plain (non-parenthesized) expressions in the text.</li>
+     *   <li>Supports addition, subtraction, multiplication, division, decimal values, and negative numbers.</li>
+     *   <li>Ignores unmatched parentheses and non-mathematical content inside them.</li>
+     * </ul>
+     *
+     * @param input the input string possibly containing arithmetic expressions
+     * @return a string with all valid expressions replaced by their evaluated results;
+     *         non-mathematical content remains unchanged
+     */
     @Override
     public String process(String input) {
         StringBuilder sb = new StringBuilder(input);
@@ -24,28 +42,25 @@ public class ManualExpressionProcessor implements ExpressionProcessor {
                 i++;
             } else if (c == ')') {
                 if (openStack.isEmpty()) {
-                    sb.insert(i, "[ERROR: Unmatched closing bracket at position " + i + "]");
-                    i += ("[ERROR: Unmatched closing bracket at position " + i + "]").length() + 1;
+                    i++;
                     continue;
                 }
                 int start = openStack.pop();
                 int end = i;
                 String inner = sb.substring(start + 1, end);
-                String replacement = evalSafe(inner);
-                sb.replace(start, end + 1, replacement);
-                i = start + replacement.length();
+
+                if (isPotentialExpression(inner)) {
+                    String replacement = evalSafe(inner);
+                    sb.replace(start, end + 1, replacement);
+                    i = start + replacement.length();
+                } else {
+                    i++;
+                }
             } else {
                 i++;
             }
         }
 
-        while (!openStack.isEmpty()) {
-            int pos = openStack.pop();
-            String err = "[ERROR: Unclosed bracket at position " + pos + "]";
-            sb.insert(pos, err);
-        }
-
-        // Check for expressions without brackets
         sb = new StringBuilder(replacePlainExpressions(sb.toString()));
 
         return sb.toString();
@@ -118,6 +133,7 @@ public class ManualExpressionProcessor implements ExpressionProcessor {
         return result.toString();
     }
 
+
     /**
      * Checks if the given string is a potential arithmetic expression.
      * <p>
@@ -133,7 +149,10 @@ public class ManualExpressionProcessor implements ExpressionProcessor {
     private boolean isPotentialExpression(String expr) {
         try {
             List<String> tokens = tokenize(expr);
-            return tokens.size() >= 3;
+            if (tokens.size() < 3) return false;
+            boolean hasNumber = tokens.stream().anyMatch(this::isNumber);
+            boolean hasOperator = tokens.stream().anyMatch(this::isOperator);
+            return hasNumber && hasOperator;
         } catch (IllegalArgumentException e) {
             return false;
         }
