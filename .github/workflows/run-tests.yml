@@ -45,8 +45,8 @@ jobs:
       - name: Deploy Allure report to GitHub Pages
         if: github.ref == 'refs/heads/main'
         run: |
-          mkdir -p public/allure
-          cp -r target/site/allure-maven-plugin/* public/allure/
+          mkdir -p public
+          cp -r target/site/allure-maven-plugin/* public/
           touch public/.nojekyll
 
           git config user.name "github-actions[bot]"
@@ -55,22 +55,21 @@ jobs:
           git fetch origin gh-pages || true
           git checkout gh-pages || git checkout --orphan gh-pages
 
-          mkdir -p allure
-          cp -r public/allure/* allure/
+          cp -r public/* ./
 
-          git add allure
+          git add .
           git commit -m "Update Allure report" || echo "No changes to commit"
           git push origin gh-pages --force
 
       - name: Update README with Allure badge
         if: github.ref == 'refs/heads/main'
         run: |
-          REPORT_URL="https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY}/allure"
+          REPORT_URL="https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY}"
           DATE_BADGE="![Last Update](https://img.shields.io/github/last-commit/${GITHUB_REPOSITORY}/gh-pages?label=updated&color=blue&style=flat-square)"
           ALLURE_BADGE="[![Allure Report](https://img.shields.io/badge/Allure-Report-ED6C3E?style=flat-square)](${REPORT_URL}) ${DATE_BADGE}"
 
           if grep -q "Allure Report" README.md; then
-            sed -i "s|\\[!\\[Allure Report.*|${ALLURE_BADGE}|" README.md
+            perl -0777 -pi -e "s|\\[!\\[Allure Report.*|${ALLURE_BADGE}|" README.md
           else
             echo -e "\n## Тесты\n${ALLURE_BADGE}" >> README.md
           fi
