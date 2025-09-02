@@ -1,6 +1,10 @@
 package org.example.processors.core;
 
 public class MathUtils {
+
+    /**
+     * Returns true if the string is a valid number (including negative and decimal) without regex.
+     */
     public static boolean isNumber(String token) {
         if (token == null || token.isEmpty()) {
             return false;
@@ -30,15 +34,21 @@ public class MathUtils {
         };
     }
 
+    public static boolean isDecimalPoint(String text, int index) {
+        return index > 0 && index < text.length() - 1
+                && Character.isDigit(text.charAt(index - 1))
+                && Character.isDigit(text.charAt(index + 1));
+    }
+
     /**
      * Converts a double to string without unnecessary .0
      *
      * @param value value to format
      * @return string representation, e.g. "4" instead of "4.0"
      */
-    private String formatDouble(double value) {
-        if (value == (int) value) {
-            return String.valueOf((int) value);
+    public static String formatDouble(double value) {
+        if (value == (long) value) {
+            return String.valueOf((long) value);
         } else {
             return String.valueOf(value);
         }
