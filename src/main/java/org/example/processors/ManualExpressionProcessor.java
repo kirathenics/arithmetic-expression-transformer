@@ -1,13 +1,11 @@
 package org.example.processors;
 
-import org.example.processors.core.EvaluationException;
 import org.example.processors.core.ExpressionEvaluator;
-import org.example.processors.core.ExpressionParser;
+import org.example.processors.core.ExpressionValidator;
 import org.example.processors.core.MathUtils;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.List;
 
 /**
  * Manual implementation of arithmetic expression processing without regular expressions.
@@ -17,6 +15,11 @@ import java.util.List;
 public class ManualExpressionProcessor implements ExpressionProcessor {
 
     private final ExpressionEvaluator evaluator = new ExpressionEvaluator();
+    private final ExpressionValidator validator;
+
+    public ManualExpressionProcessor(ExpressionValidator validator) {
+        this.validator = validator;
+    }
 
     /**
      * Processes the given input string by evaluating arithmetic expressions.
@@ -59,7 +62,7 @@ public class ManualExpressionProcessor implements ExpressionProcessor {
                 int end = i;
                 String inner = sb.substring(start + 1, end);
 
-                if (isPotentialExpression(inner)) {
+                if (validator.isPotentialExpression(inner)) {
                     String replacement = evaluator.evalExpression(inner);
                     sb.replace(start, end + 1, replacement);
                     i = start + replacement.length();
@@ -130,7 +133,7 @@ public class ManualExpressionProcessor implements ExpressionProcessor {
                 String candidate = text.substring(pos, lastMeaningfulIndex + 1);
                 String punctuation = text.substring(lastMeaningfulIndex + 1, endPos);
 
-                if (hasOperator && isPotentialExpression(candidate)) {
+                if (hasOperator && validator.isPotentialExpression(candidate)) {
                     String replacement = evaluator.evalExpression(candidate);
                     result.append(replacement).append(punctuation);
                     pos = endPos;
@@ -141,32 +144,5 @@ public class ManualExpressionProcessor implements ExpressionProcessor {
             pos++;
         }
         return result.toString();
-    }
-
-
-    /**
-     * Checks if the given string is a potential arithmetic expression.
-     * <p>
-     * The expression is considered "potential" if it can be tokenized
-     * into at least three parts (e.g., operand, operator, operand).
-     * This method does not fully validate the syntax but ensures that
-     * the structure resembles an arithmetic operation.
-     * </p>
-     *
-     * @param expr The expression string to check.
-     * @return {@code true} if the string looks like a valid arithmetic expression, {@code false} otherwise.
-     */
-    private boolean isPotentialExpression(String expr) {
-        try {
-            ExpressionParser parser = new ExpressionParser();
-            List<String> tokens = parser.tokenize(expr);
-
-            if (tokens.size() < 3) return false;
-            boolean hasNumber = tokens.stream().anyMatch(MathUtils::isNumber);
-            boolean hasOperator = tokens.stream().anyMatch(MathUtils::isOperator);
-            return hasNumber && hasOperator;
-        } catch (EvaluationException e) {
-            return false;
-        }
     }
 }

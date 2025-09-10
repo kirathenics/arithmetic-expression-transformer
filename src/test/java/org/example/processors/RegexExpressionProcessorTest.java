@@ -1,6 +1,8 @@
 package org.example.processors;
 
 import io.qameta.allure.*;
+import org.example.processors.core.ExpressionParser;
+import org.example.processors.core.ExpressionValidator;
 import org.junit.jupiter.api.*;
 
 /**
@@ -13,6 +15,6 @@ import org.junit.jupiter.api.*;
 class RegexExpressionProcessorTest extends AbstractExpressionProcessorTest {
     @Override
     protected ExpressionProcessor createProcessor() {
-        return new RegexExpressionProcessor();
+        return new RegexExpressionProcessor(new ExpressionValidator(new ExpressionParser()));
     }
 }

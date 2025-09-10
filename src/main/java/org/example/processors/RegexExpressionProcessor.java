@@ -1,6 +1,7 @@
 package org.example.processors;
 
 import org.example.processors.core.ExpressionEvaluator;
+import org.example.processors.core.ExpressionValidator;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,6 +21,11 @@ public class RegexExpressionProcessor implements ExpressionProcessor {
     private static final Pattern VALID_MATH_EXPR = Pattern.compile("[0-9+\\-*/.\\s]+");
 
     private final ExpressionEvaluator evaluator = new ExpressionEvaluator();
+    private final ExpressionValidator validator;
+
+    public RegexExpressionProcessor(ExpressionValidator validator) {
+        this.validator = validator;
+    }
 
     /**
      * Processes the given input string, evaluating mathematical expressions
@@ -47,7 +53,7 @@ public class RegexExpressionProcessor implements ExpressionProcessor {
             while (matcher.find()) {
                 String innerExpr = matcher.group(1);
                 String replacement;
-                if (isValidMathExpression(innerExpr)) {
+                if (validator.isValidMathExpression(VALID_MATH_EXPR, innerExpr)) {
                     try {
                         replacement = evaluator.evalExpression(innerExpr);
                     } catch (Exception e) {
@@ -101,16 +107,5 @@ public class RegexExpressionProcessor implements ExpressionProcessor {
         matcher.appendTail(sb);
 
         return sb.toString();
-    }
-
-    /**
-     * Checks if the provided expression string contains only valid
-     * mathematical characters (digits, operators, decimal points, and spaces).
-     *
-     * @param expr the expression to validate
-     * @return true if the expression is a valid math expression format, false otherwise
-     */
-    private boolean isValidMathExpression(String expr) {
-        return VALID_MATH_EXPR.matcher(expr).matches();
     }
 }

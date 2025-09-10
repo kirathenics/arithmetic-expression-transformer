@@ -5,6 +5,8 @@ import org.example.io.SimpleFileWriter;
 import org.example.processors.ExpressionProcessor;
 import org.example.processors.RegexExpressionProcessor;
 import org.example.processors.ManualExpressionProcessor;
+import org.example.processors.core.ExpressionParser;
+import org.example.processors.core.ExpressionValidator;
 
 public class Main {
 
@@ -28,8 +30,8 @@ public class Main {
         ExpressionProcessor processor;
 
         switch (mode.toLowerCase()) {
-            case "manual" -> processor = new ManualExpressionProcessor();
-            case "regex"  -> processor = new RegexExpressionProcessor();
+            case "manual" -> processor = new ManualExpressionProcessor(new ExpressionValidator(new ExpressionParser()));
+            case "regex"  -> processor = new RegexExpressionProcessor(new ExpressionValidator(new ExpressionParser()));
             default -> {
                 System.err.println("Unknown mode: " + mode);
                 return;
