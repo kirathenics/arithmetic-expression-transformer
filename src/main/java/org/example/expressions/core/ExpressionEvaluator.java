@@ -1,12 +1,17 @@
-package org.example.processors.core;
+package org.example.expressions.core;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 
 public class ExpressionEvaluator {
-    private final ExpressionParser parser = new ExpressionParser();
-    private final ExpressionConverter converter = new ExpressionConverter();
+    private final ExpressionParser parser;
+    private final ExpressionConverter converter;
+
+    public ExpressionEvaluator(ExpressionParser parser, ExpressionConverter converter) {
+        this.parser = parser;
+        this.converter = converter;
+    }
 
     /**
      * Safely evaluates an arithmetic expression and returns the formatted result.

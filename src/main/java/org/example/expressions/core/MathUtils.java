@@ -1,4 +1,4 @@
-package org.example.processors.core;
+package org.example.expressions.core;
 
 public class MathUtils {
 

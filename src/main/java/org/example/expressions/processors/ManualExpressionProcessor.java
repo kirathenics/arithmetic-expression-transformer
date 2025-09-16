@@ -1,8 +1,8 @@
-package org.example.processors;
+package org.example.expressions.processors;
 
-import org.example.processors.core.ExpressionEvaluator;
-import org.example.processors.core.ExpressionValidator;
-import org.example.processors.core.MathUtils;
+import org.example.expressions.core.ExpressionEvaluator;
+import org.example.expressions.core.ExpressionValidator;
+import org.example.expressions.core.MathUtils;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -14,10 +14,11 @@ import java.util.Deque;
  */
 public class ManualExpressionProcessor implements ExpressionProcessor {
 
-    private final ExpressionEvaluator evaluator = new ExpressionEvaluator();
+    private final ExpressionEvaluator evaluator;
     private final ExpressionValidator validator;
 
-    public ManualExpressionProcessor(ExpressionValidator validator) {
+    public ManualExpressionProcessor(ExpressionEvaluator evaluator, ExpressionValidator validator) {
+        this.evaluator = evaluator;
         this.validator = validator;
     }
 

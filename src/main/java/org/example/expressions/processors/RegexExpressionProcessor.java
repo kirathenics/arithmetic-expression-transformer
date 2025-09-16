@@ -1,7 +1,7 @@
-package org.example.processors;
+package org.example.expressions.processors;
 
-import org.example.processors.core.ExpressionEvaluator;
-import org.example.processors.core.ExpressionValidator;
+import org.example.expressions.core.ExpressionEvaluator;
+import org.example.expressions.core.ExpressionValidator;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,10 +20,11 @@ public class RegexExpressionProcessor implements ExpressionProcessor {
     );
     private static final Pattern VALID_MATH_EXPR = Pattern.compile("[0-9+\\-*/.\\s]+");
 
-    private final ExpressionEvaluator evaluator = new ExpressionEvaluator();
+    private final ExpressionEvaluator evaluator;
     private final ExpressionValidator validator;
 
-    public RegexExpressionProcessor(ExpressionValidator validator) {
+    public RegexExpressionProcessor(ExpressionEvaluator evaluator, ExpressionValidator validator) {
+        this.evaluator = evaluator;
         this.validator = validator;
     }
 

@@ -1,4 +1,4 @@
-package org.example.processors.core;
+package org.example.expressions.core;
 
 import java.util.ArrayList;
 import java.util.List;

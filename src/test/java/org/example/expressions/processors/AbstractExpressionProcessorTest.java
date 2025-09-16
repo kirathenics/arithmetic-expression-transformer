@@ -1,4 +1,4 @@
-package org.example.processors;
+package org.example.expressions.processors;
 
 import io.qameta.allure.*;
 import org.junit.jupiter.api.*;
