@@ -1,0 +1,81 @@
+name: Run Tests with Allure Report
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Build & Run tests
+        run: mvn clean test
+
+      - name: Generate Allure report
+        run: mvn allure:report
+
+      - name: Upload Allure results
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results
+          path: target/allure-results
+
+      - name: Upload Allure report
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: target/site/allure-maven-plugin
+
+      - name: Deploy Allure report to GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        run: |
+          mkdir -p public
+          cp -r target/site/allure-maven-plugin/* public/
+          touch public/.nojekyll
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git fetch origin gh-pages || true
+          git checkout gh-pages || git checkout --orphan gh-pages
+
+          cp -r public/* ./
+
+          git add .
+          git commit -m "Update Allure report" || echo "No changes to commit"
+          git push origin gh-pages --force
+
+      - name: Update README with Allure badge
+        if: github.ref == 'refs/heads/main'
+        run: |
+          REPORT_URL="https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY}"
+          DATE_BADGE="![Last Update](https://img.shields.io/github/last-commit/${GITHUB_REPOSITORY}/gh-pages?label=updated&color=blue&style=flat-square)"
+          ALLURE_BADGE="[![Allure Report](https://img.shields.io/badge/Allure-Report-ED6C3E?style=flat-square)](${REPORT_URL}) ${DATE_BADGE}"
+
+          if grep -q "Allure Report" README.md; then
+            perl -0777 -pi -e "s|\\[!\\[Allure Report.*|${ALLURE_BADGE}|" README.md
+          else
+            echo -e "\n## Тесты\n${ALLURE_BADGE}" >> README.md
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "Update README with Allure report badge" || echo "No changes to commit"
+          git push origin main
