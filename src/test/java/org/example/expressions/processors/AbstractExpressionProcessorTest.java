@@ -16,11 +16,11 @@ public abstract class AbstractExpressionProcessorTest {
 
     private ExpressionProcessor processor;
 
-    protected abstract ExpressionProcessor createProcessor();
+    protected abstract ExpressionProcessor createTestProcessor();
 
     @BeforeEach
     void setUp() {
-        processor = createProcessor();
+        processor = createTestProcessor();
     }
 
     @Step("Process expression: \"{input}\"")

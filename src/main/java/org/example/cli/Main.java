@@ -1,14 +1,11 @@
 package org.example.cli;
 
+import org.example.expressions.factory.ExpressionProcessorFactory;
+import org.example.expressions.factory.ManualExpressionProcessorFactory;
+import org.example.expressions.factory.RegexExpressionProcessorFactory;
 import org.example.io.SimpleFileReader;
 import org.example.io.SimpleFileWriter;
 import org.example.expressions.processors.ExpressionProcessor;
-import org.example.expressions.processors.RegexExpressionProcessor;
-import org.example.expressions.processors.ManualExpressionProcessor;
-import org.example.expressions.core.ExpressionConverter;
-import org.example.expressions.core.ExpressionEvaluator;
-import org.example.expressions.core.ExpressionParser;
-import org.example.expressions.core.ExpressionValidator;
 
 public class Main {
 
@@ -29,16 +26,18 @@ public class Main {
         String outputPath = args[1];
         String mode = args[2];
 
-        ExpressionProcessor processor;
+        ExpressionProcessorFactory factory;
 
         switch (mode.toLowerCase()) {
-            case "manual" -> processor = new ManualExpressionProcessor(new ExpressionEvaluator(new ExpressionParser(), new ExpressionConverter()), new ExpressionValidator(new ExpressionParser()));
-            case "regex"  -> processor = new RegexExpressionProcessor(new ExpressionEvaluator(new ExpressionParser(), new ExpressionConverter()), new ExpressionValidator(new ExpressionParser()));
+            case "manual" -> factory = new ManualExpressionProcessorFactory();
+            case "regex"  -> factory = new RegexExpressionProcessorFactory();
             default -> {
                 System.err.println("Unknown mode: " + mode);
                 return;
             }
         }
+
+        ExpressionProcessor processor = factory.createProcessor();
 
         try {
             String content = SimpleFileReader.read(inputPath);
